@@ -1,26 +1,337 @@
 @import "tailwindcss";
 
+/* Class-based dark mode (html.dark) instead of media-query only. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Palette. Light is the fallback; .dark overrides. Everything downstream
+   reads these semantic vars, so the whole site flips from one block.
+--------------------------------------------------------------------------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #f6f6f4;
+  --bg-elev: #ffffff;
+  --bg-sunken: #eeeeea;
+  --fg: #0c0e15;
+  --fg-muted: #565b6d;
+  --fg-faint: #868c9e;
+  --line: rgba(12, 14, 22, 0.1);
+  --line-strong: rgba(12, 14, 22, 0.16);
+  --surface: rgba(12, 14, 22, 0.028);
+  --surface-hover: rgba(12, 14, 22, 0.055);
+
+  --accent: #0a91b4;
+  --accent-2: #5b4bdd;
+  --accent-3: #d6449a;
+  --accent-contrast: #ffffff;
+
+  --glow-1: rgba(10, 145, 180, 0.28);
+  --glow-2: rgba(91, 75, 221, 0.26);
+  --glow-3: rgba(214, 68, 154, 0.18);
+
+  --shadow-card: 0 1px 2px rgba(12, 14, 22, 0.04), 0 12px 32px -12px rgba(12, 14, 22, 0.14);
+  --shadow-lift: 0 2px 4px rgba(12, 14, 22, 0.05), 0 28px 56px -20px rgba(12, 14, 22, 0.22);
+  --grid-line: rgba(12, 14, 22, 0.055);
+}
+
+.dark {
+  --bg: #06070d;
+  --bg-elev: #0c0e17;
+  --bg-sunken: #04050a;
+  --fg: #e8eaf4;
+  --fg-muted: #9096ab;
+  --fg-faint: #676d82;
+  --line: rgba(255, 255, 255, 0.085);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --surface: rgba(255, 255, 255, 0.032);
+  --surface-hover: rgba(255, 255, 255, 0.062);
+
+  --accent: #3ddbf0;
+  --accent-2: #8b7cff;
+  --accent-3: #ff77b9;
+  --accent-contrast: #05060c;
+
+  --glow-1: rgba(61, 219, 240, 0.42);
+  --glow-2: rgba(139, 124, 255, 0.4);
+  --glow-3: rgba(255, 119, 185, 0.26);
+
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 16px 40px -16px rgba(0, 0, 0, 0.8);
+  --shadow-lift: 0 1px 0 rgba(255, 255, 255, 0.07) inset, 0 32px 64px -24px rgba(0, 0, 0, 0.9);
+  --grid-line: rgba(255, 255, 255, 0.062);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-bg-elev: var(--bg-elev);
+  --color-bg-sunken: var(--bg-sunken);
+  --color-fg: var(--fg);
+  --color-muted: var(--fg-muted);
+  --color-faint: var(--fg-faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --color-accent-3: var(--accent-3);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-inter), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
+
+  --animate-aurora: aurora 26s ease-in-out infinite;
+  --animate-marquee: marquee 44s linear infinite;
+  --animate-blink: blink 1.05s step-end infinite;
+  --animate-pulse-ring: pulse-ring 2.8s ease-out infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes aurora {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(6%, -8%, 0) scale(1.14);
+  }
+  66% {
+    transform: translate3d(-7%, 5%, 0) scale(0.92);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.7;
+  }
+  70%,
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 6.5rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--accent) 35%, transparent);
+    color: var(--fg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg-sunken);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--fg) 18%, transparent);
+    border-radius: 999px;
+    border: 3px solid var(--bg-sunken);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--accent) 60%, transparent);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.028em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Utilities
+--------------------------------------------------------------------------- */
+@utility glass {
+  background: color-mix(in oklab, var(--bg-elev) 68%, transparent);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid var(--line);
+}
+
+@utility card-surface {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--bg-elev) 92%, transparent),
+    color-mix(in oklab, var(--bg-elev) 62%, transparent)
+  );
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
+}
+
+/*
+ * Space Grotesk's "1" carries a left-extending flag on a narrow advance, so it
+ * collides with an adjacent figure ("10" renders as a ligature-looking blob).
+ * Big numbers therefore use the sans face, with tabular figures so a counting
+ * animation does not jitter the layout.
+ */
+@utility num {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+@utility text-gradient {
+  background-image: linear-gradient(
+    100deg,
+    var(--accent) 0%,
+    var(--accent-2) 48%,
+    var(--accent-3) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+@utility grid-overlay {
+  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 68px 68px;
+}
+
+/*
+ * Gradient hairline border that lights up on hover, without layout shift.
+ * Deliberately does NOT set `position` — a utility that sets it would beat
+ * `fixed`/`sticky` on the same element. Hosts bring their own positioning.
+ */
+@utility ring-gradient {
+  isolation: isolate;
+}
+
+.ring-gradient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(140deg, var(--accent), var(--accent-2) 50%, transparent 78%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+  pointer-events: none;
+}
+
+.ring-gradient:hover::after,
+.ring-gradient:focus-within::after {
+  opacity: 1;
+}
+
+/* Fine film grain so the large gradient fields do not band. Same rule as
+   ring-gradient: no `position` here, or it would override the host's. */
+@utility grain {
+  isolation: isolate;
+}
+
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Fades the tail of a horizontally scrolling / marquee strip. */
+@utility edge-fade {
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 14%,
+    #000 86%,
+    transparent
+  );
+  mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+}
+
+/* ---------------------------------------------------------------------------
+   Scroll reveal, driven by the Reveal client component.
+--------------------------------------------------------------------------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+.reveal[data-visible="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
